@@ -1,54 +1,100 @@
-# React + TypeScript + Vite
+# 🚀 MVP Organograma - React + TypeScript + Supabase
 
-This template provides a minimal setup to get React working in Vite with HMR and some ESLint rules.
+Projeto MVP de um sistema simples de **organograma**, criado com o objetivo de **retomar os estudos com React + TypeScript**.
 
-Currently, two official plugins are available:
+⚠️ Este projeto **não é indicado como referência de boas práticas** — foi desenvolvido rapidamente para fins de estudo e deploy funcional. Pode (e deve) ser melhorado com o uso de ferramentas como **React Hook Form**, **validações de formulário**, e **tratamento de erros mais robusto**.
 
-- [@vitejs/plugin-react](https://github.com/vitejs/vite-plugin-react/blob/main/packages/plugin-react/README.md) uses [Babel](https://babeljs.io/) for Fast Refresh
-- [@vitejs/plugin-react-swc](https://github.com/vitejs/vite-plugin-react-swc) uses [SWC](https://swc.rs/) for Fast Refresh
+---
 
-## Expanding the ESLint configuration
+## 📌 Funcionalidades
 
-If you are developing a production application, we recommend updating the configuration to enable type-aware lint rules:
+- ✅ CRUD de **Colaboradores**
+- ✅ CRUD de **Times**
+- ✅ Integração com **Supabase** (banco de dados e autenticação)
+- ✅ Interface utilizando **Bootstrap** e **React Icons**
 
-```js
-export default tseslint.config({
-  extends: [
-    // Remove ...tseslint.configs.recommended and replace with this
-    ...tseslint.configs.recommendedTypeChecked,
-    // Alternatively, use this for stricter rules
-    ...tseslint.configs.strictTypeChecked,
-    // Optionally, add this for stylistic rules
-    ...tseslint.configs.stylisticTypeChecked,
-  ],
-  languageOptions: {
-    // other options...
-    parserOptions: {
-      project: ['./tsconfig.node.json', './tsconfig.app.json'],
-      tsconfigRootDir: import.meta.dirname,
-    },
-  },
-})
+---
+
+## 🛠 Tecnologias e Bibliotecas
+
+- [Vite](https://vitejs.dev/) + React + TypeScript
+- [Supabase](https://supabase.com/)
+- [Bootstrap 5.3](https://getbootstrap.com/)
+- [React Icons](https://react-icons.github.io/react-icons/)
+- Node.js `v18.19.1`
+
+---
+
+## 📦 Dependências utilizadas
+
+```json
+"dependencies": {
+  "@supabase/supabase-js": "^2.49.4",
+  "bootstrap": "^5.3.5",
+  "react-icons": "^5.5.0"
+}
 ```
 
-You can also install [eslint-plugin-react-x](https://github.com/Rel1cx/eslint-react/tree/main/packages/plugins/eslint-plugin-react-x) and [eslint-plugin-react-dom](https://github.com/Rel1cx/eslint-react/tree/main/packages/plugins/eslint-plugin-react-dom) for React-specific lint rules:
+---
 
-```js
-// eslint.config.js
-import reactX from 'eslint-plugin-react-x'
-import reactDom from 'eslint-plugin-react-dom'
+## 🧪 Passo a Passo para Instalação e Execução
 
-export default tseslint.config({
-  plugins: {
-    // Add the react-x and react-dom plugins
-    'react-x': reactX,
-    'react-dom': reactDom,
-  },
-  rules: {
-    // other rules...
-    // Enable its recommended typescript rules
-    ...reactX.configs['recommended-typescript'].rules,
-    ...reactDom.configs.recommended.rules,
-  },
-})
+### 1. Clone o repositório
+```bash
+git clone https://github.com/VictorIshizuka/organograma.git
+cd organograma
 ```
+
+### 2. Instale as dependências
+```bash
+npm install
+```
+
+### 3. Configure as variáveis de ambiente
+Crie um arquivo `.env` na raiz do projeto com o seguinte conteúdo:
+
+```env
+VITE_SUPABASE_URL=https://your-project.supabase.co
+VITE_SUPABASE_ANON_KEY=your-anon-key
+```
+
+Você pode encontrar esses dados no painel do seu projeto no Supabase, em **Project Settings > API**.
+
+### 4. Rode o projeto em modo de desenvolvimento
+```bash
+npm run dev
+```
+
+### 5. Abra no navegador
+Acesse:
+```bash
+http://localhost:5173
+```
+ou
+```bash
+http://localhost:3000
+```
+
+---
+
+## 🌐 Deploy em Produção
+A aplicação está disponível em produção via Vercel:
+
+👉 **https://organograma-mvp.vercel.app**
+
+---
+
+## ⚠️ Aviso sobre Boas Práticas
+Este projeto foi desenvolvido como MVP rápido e funcional, portanto:
+
+- Não utiliza **React Hook Form**
+- Não possui **validações completas** de formulário
+- O **tratamento de erros** ainda está superficial
+
+Futuramente pode (e deve) ser refatorado para seguir melhores padrões.
+
+---
+
+## 📘 Licença
+Este projeto está sob a licença MIT.
+

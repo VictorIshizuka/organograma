@@ -1,6 +1,5 @@
-import { Collaborator, DevTeam } from "../types";
-
-const collaborators: Collaborator[] = [
+//exemplo de dados
+const collaborators = [
   {
     name: "Ana Teste Souza",
     role: "Desenvolvedora Front-End",
@@ -57,7 +56,8 @@ const collaborators: Collaborator[] = [
   },
 ];
 
-const devTeams: DevTeam[] = [
+//exemplo de dados
+const devTeams = [
   { name: "Front-End", color: "#6278f7" },
   { name: "Back-End", color: "#f76c6c" },
   { name: "DevOps", color: "#00b894" },
