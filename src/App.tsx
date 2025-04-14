@@ -1,5 +1,16 @@
+import { Header } from "./components/Header/index.tsx";
+import { TeamProvider } from "./hooks/TeamContext.tsx";
+import { Page } from "./page";
+
 function App() {
-  return <><h2>Organograma</h2></>;
+  return (
+    <>
+      <Header />
+      <TeamProvider>
+        <Page />
+      </TeamProvider>
+    </>
+  );
 }
 
 export default App;
