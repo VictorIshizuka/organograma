@@ -80,7 +80,7 @@ http://localhost:3000
 ## 🌐 Deploy em Produção
 A aplicação está disponível em produção via Vercel:
 
-👉 **https://organograma-n56tixwaw-victorishizukas-projects.vercel.app**
+👉 **https://organograma-smoky.vercel.app/**
 
 ---
 
