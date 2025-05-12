@@ -1,34 +1,63 @@
-import { useRef, useEffect } from "react";
+import { useEffect } from "react";
+import { SubmitHandler, useForm } from "react-hook-form";
+import { yupResolver } from "@hookform/resolvers/yup";
+
+import { useTeamContext } from "../hooks/TeamContext";
+
+import { DevTeam, FormTeamSchema } from "../types";
+import { formTeamSchema } from "../validation";
+
 import { TextInput } from "../components/Form/Input";
 import { Button } from "../components/Form/Button";
-import { DevTeam } from "../types";
 
-export function FormTeam({
-  addTeam,
-  setMessage,
-  team,
-  editTeam,
-  setSelectedForm
-}: {
-  addTeam: (team: Omit<DevTeam, "id">) => Promise<Record<string, unknown>>;
+type FormTeamProps = {
+  setMessage: (message: string) => void;
+  teamToEdit: DevTeam | undefined;
   setSelectedForm: (form: string) => void;
-  editTeam: (
-    id: string,
-    team: Partial<DevTeam>
-  ) => Promise<Record<string, unknown>>;
-  team?: DevTeam;
-  setMessage: (message: unknown) => void;
-}) {
-  const nameRef = useRef<HTMLInputElement>(null);
-  const colorRef = useRef<HTMLInputElement>(null);
-  console.log({ entrou: team });
+};
+export function FormTeam({
+  setMessage,
+  teamToEdit,
+  setSelectedForm,
+}: FormTeamProps) {
+  const { addTeam, editTeam } = useTeamContext();
+
+  const {
+    register,
+    handleSubmit,
+    reset,
+    formState: { errors },
+  } = useForm<FormTeamSchema>({
+    resolver: yupResolver(formTeamSchema),
+    defaultValues: {
+      name: "",
+      color: "#000000",
+    },
+  });
+
+  const onSubmit: SubmitHandler<FormTeamSchema> = async (
+    data
+  ): Promise<void> => {
+    const teamPayload: FormTeamSchema = {
+      name: data.name,
+      color: data.color,
+    };
+
+    if (teamToEdit?.id) {
+      const { success, message } = await editTeam(teamToEdit.id, teamPayload);
+      if (success) setMessage(message as string);
+    } else {
+      const { success, message } = await addTeam(teamPayload);
+      if (success) setMessage(message as string);
+    }
+    setSelectedForm("form3");
+  };
 
   useEffect(() => {
-    if (team && nameRef.current && colorRef.current) {
-      nameRef.current.value = team.name;
-      colorRef.current.value = team.color;
+    if (teamToEdit?.id) {
+      reset({ ...teamToEdit });
     }
-  }, [team]);
+  }, [teamToEdit]);
 
   return (
     <div className="d-flex justify-content-center mb-4">
@@ -37,52 +66,28 @@ export function FormTeam({
         style={{ maxWidth: "500px" }}
       >
         <h5 className="card-title text-center mb-4">
-          {team?.id ? "Editar" : "Novo"} Time
+          {teamToEdit?.id ? "Editar" : "Novo"} Time
         </h5>
-        <form
-          className="row"
-          onSubmit={async e => {
-            e.preventDefault();
-            const name = nameRef.current?.value;
-            const color = colorRef.current?.value;
-
-            if (team?.id) {
-              const { success, message } = await editTeam(team.id, {
-                name,
-                color,
-              });
-              setMessage(message);
-              if (success) {
-                // limpa os campos
-                if (nameRef.current) nameRef.current.value = "";
-                if (colorRef.current) colorRef.current.value = "#000000"; // ou cor padrão
-              }
-              setSelectedForm("form3");
-              return;
-            }
-
-            if (!name || !color) {
-              setMessage("Preencha todos os campos.");
-              return;
-            }
-            const { success, message } = await addTeam({ name, color });
-            setMessage(message);
-            if (success) {
-              // limpa os campos
-              if (nameRef.current) nameRef.current.value = "";
-              if (colorRef.current) colorRef.current.value = "#000000"; // ou cor padrão
-            }
-            setSelectedForm("form3");
-          }}
-        >
+        <form className="row" onSubmit={handleSubmit(onSubmit)}>
           <div className="col-12 mb-3">
-            <TextInput ref={nameRef} name="name" label="Nome" />
+            <TextInput
+              name="name"
+              label="Nome"
+              error={errors.name?.message}
+              register={register}
+            />
           </div>
           <div className="col-12 mb-3">
-            <TextInput type="color" ref={colorRef} name="color" label="Cor" />
+            <TextInput
+              type="color"
+              name="color"
+              label="Cor"
+              error={errors.color?.message}
+              register={register}
+            />
           </div>
           <div className=" col-12">
-            <Button label={team?.id ? "Salvar" : "Cadastrar"} />
+            <Button label={teamToEdit?.id ? "Salvar" : "Cadastrar"} />
           </div>
         </form>
       </div>

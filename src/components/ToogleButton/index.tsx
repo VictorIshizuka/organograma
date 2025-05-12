@@ -1,22 +1,24 @@
 import { FaEye, FaEyeSlash } from "react-icons/fa";
 
-export const ToggleFormButton = ({
-  showForm,
+export const ToggleButton = ({
+  show,
+  isForm = false,
   toggle,
   color = "#6278f7",
+  className = "",
 }: {
-  showForm: boolean;
+  className?: string;
+  show?: boolean;
+  isForm: boolean;
   toggle: () => void;
   color?: string;
 }) => (
-  <div className="d-flex justify-content-center mb-3">
-    <button
-      className="btn btn-outline d-flex align-items-center gap-2"
-      style={{ color, borderColor: color }}
-      onClick={toggle}
-    >
-      {showForm ? <FaEyeSlash /> : <FaEye />}
-      {showForm ? "Ocultar Formulários" : "Mostrar Formulários"}
-    </button>
-  </div>
+  <button
+    className={`btn  ${className}`}
+    style={{ color, borderColor: color }}
+    onClick={toggle}
+  >
+    {show ? <FaEyeSlash /> : <FaEye />}
+    {isForm ? (show ? "Ocultar Formulários" : "Mostrar Formulários") : ""}
+  </button>
 );

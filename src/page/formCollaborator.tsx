@@ -1,134 +1,137 @@
-import { JSX, useEffect, useRef } from "react";
+import { JSX, useEffect } from "react";
+import { useForm, SubmitHandler } from "react-hook-form";
+import { yupResolver } from "@hookform/resolvers/yup";
+
+import { useCollaboratorContext } from "../hooks/CollaboratorContext";
+
+import { Collaborator, FormCollaboratorSchema } from "../types";
+import { formCollaboratorSchema } from "../validation";
+
 import { TextInput } from "../components/Form/Input";
 import { Button } from "../components/Form/Button";
-import { Collaborator, DevTeam } from "../types";
+import { SelectInput } from "../components/Form/Select";
+import { useTeamContext } from "../hooks/TeamContext";
+
+type FormCollaboratorProps = {
+  collaboratorToEdit?: Collaborator;
+  setMessage: (message: string) => void;
+};
 
 export function FormCollaborator({
-  devTeams,
-  addCollaborator,
   setMessage,
-  editCollaborator,
   collaboratorToEdit,
-}: {
-  devTeams: DevTeam[];
-  collaboratorToEdit?: Collaborator;
-  editCollaborator: (
-    id: string,
-    collaborator: Partial<Collaborator>
-  ) => Promise<Record<string, unknown>>;
-  addCollaborator: (
-    collaborator: Omit<Collaborator, "id">
-  ) => Promise<Record<string, unknown>>;
-  setMessage: (message: unknown) => void;
-}): JSX.Element {
-  const nameRef = useRef<HTMLInputElement>(null);
-  const roleRef = useRef<HTMLInputElement>(null);
-  const photoRef = useRef<HTMLInputElement>(null);
-  const teamRef = useRef<HTMLSelectElement>(null);
+}: FormCollaboratorProps): JSX.Element {
+  const { addCollaborator, editCollaborator } = useCollaboratorContext();
+  const { devTeams } = useTeamContext();
+
+  const {
+    register,
+    handleSubmit,
+    reset,
+    formState: { errors },
+  } = useForm<FormCollaboratorSchema>({
+    resolver: yupResolver(formCollaboratorSchema),
+    defaultValues: {
+      name: "",
+      role: "",
+      githubAvatar: "",
+      team_id: "",
+      favorite: false,
+    },
+  });
+
+  const onSubmit: SubmitHandler<FormCollaboratorSchema> = async (
+    data
+  ): Promise<void> => {
+    const githubAvatar = data.githubAvatar
+      ? `https://github.com/${data.githubAvatar}`
+      : "";
+
+    const collaboratorPayload: FormCollaboratorSchema = {
+      name: data.name,
+      role: data.role,
+      team_id: data.team_id,
+      favorite: data.favorite,
+      githubAvatar,
+    };
+
+    if (collaboratorToEdit?.id) {
+      const { success, message } = await editCollaborator(
+        collaboratorToEdit.id,
+        collaboratorPayload
+      );
+      if (success) setMessage(message as string);
+    } else {
+      const { success, message } = await addCollaborator(collaboratorPayload);
+      if (success) {
+        setMessage(message as string);
+        reset();
+      }
+    }
+  };
 
   useEffect(() => {
     if (collaboratorToEdit?.id) {
-      if (nameRef.current)
-        nameRef.current.value = collaboratorToEdit.name ?? "";
-      if (roleRef.current)
-        roleRef.current.value = collaboratorToEdit.role ?? "";
-      if (photoRef.current) {
-        photoRef.current.value = collaboratorToEdit.githubAvatar
-          ? collaboratorToEdit.githubAvatar.replace("https://github.com/", "")
-          : "";
-      }
-      if (teamRef.current)
-        teamRef.current.value = collaboratorToEdit.team_id ?? "";
+      const githubAvatar = collaboratorToEdit.githubAvatar
+        ? collaboratorToEdit.githubAvatar.replace("https://github.com/", "")
+        : "";
+      reset({ ...collaboratorToEdit, githubAvatar });
     }
-  }, [collaboratorToEdit]);
+  }, [collaboratorToEdit, reset]);
+
   return (
     <div className="d-flex justify-content-center mb-4">
       <div
         className="card shadow-sm w-100 h-50 p-4"
         style={{ maxWidth: "500px" }}
       >
-        <h5 className="card-title text-center mb-4">
+        <h5 className="card-title text-center mb-3">
           {collaboratorToEdit?.id ? "Editar Colaborador" : "Novo Colaborador"}
         </h5>
-        <form
-          className="row"
-          onSubmit={async e => {
-            e.preventDefault();
-
-            const name = nameRef.current?.value;
-            const role = roleRef.current?.value;
-            const photo = photoRef.current?.value;
-            const team = teamRef.current?.value;
-
-            if (!name || !role || !team) {
-              setMessage("Preencha todos os campos.");
-              return;
-            }
-            console.log({ collaboratorToEdit });
-            if (collaboratorToEdit?.id) {
-              const githubAvatar = photo ? "https://github.com/" + photo : null;
-
-              const { success, message } = await editCollaborator(
-                collaboratorToEdit.id,
-                {
-                  name,
-                  role,
-                  team_id: team,
-                  githubAvatar,
-                }
-              );
-              
-              if (success) {
-                setMessage(message);
-              }
-              return;
-            }
-            const { success, message } = await addCollaborator({
-              name,
-              role,
-              team_id: team,
-              githubAvatar: photo ? "https://github.com/" + photo : null,
-              favorite: false,
-            });
-            if (success) {
-              setMessage(message);
-              nameRef.current!.value = "";
-              roleRef.current!.value = "";
-              photoRef.current!.value = "";
-              teamRef.current!.value = "";
-            }
-          }}
-        >
-          <div className="col-12 mb-3">
-            <TextInput ref={nameRef} name="name" label="Nome" />
-          </div>
-          <div className="col-12 mb-3">
-            <TextInput ref={roleRef} name="role" label="Cargo" />
-          </div>
+        <form className="row" onSubmit={handleSubmit(onSubmit)}>
           <div className="col-12 mb-3">
             <TextInput
-              ref={photoRef}
-              name="photo"
-              label="Link do Colaborador"
-              placeholder="nome_no_github.png"
+              label="Nome"
+              name="name"
+              error={errors.name?.message}
+              register={register}
             />
           </div>
           <div className="col-12 mb-3">
-            <label className="form-label">Time</label>
-            <select ref={teamRef} className="form-select" defaultValue="">
-              <option disabled value="">
-                Selecione o time
-              </option>
-              {devTeams?.map(team => (
-                <option key={team.id} value={team.id}>
-                  {team.name}
-                </option>
-              ))}
-            </select>
+            <TextInput
+              label="Cargo"
+              name="role"
+              error={errors.role?.message}
+              register={register}
+            />
           </div>
-
+          <div className="col-12 mb-3">
+            <TextInput
+              label="Nome do GitHub"
+              name="githubAvatar"
+              placeholder="nome-do-github.png"
+              error={errors.githubAvatar?.message}
+              register={register}
+            />
+          </div>
+          <div className="col-12 mb-3">
+            <SelectInput
+              label="Time"
+              name="team_id"
+              error={errors.team_id?.message}
+              options={devTeams.map(team => ({
+                label: team.name,
+                value: team.id,
+              }))}
+              register={register}
+            />
+          </div>
           <div className=" col-12">
-            <Button label="Enviar" />
+            <Button
+              label="Enviar"
+              className="text-white w-100"
+              style={{ backgroundColor: "#6278f7" }}
+            />
           </div>
         </form>
       </div>

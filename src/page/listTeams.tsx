@@ -5,19 +5,21 @@ import { useTeamContext } from "../hooks/TeamContext";
 import { DevTeam } from "../types";
 import { useEffect, useState } from "react";
 import { IoChevronBack, IoChevronForward } from "react-icons/io5";
+import { useCollaboratorContext } from "../hooks/CollaboratorContext";
+
+type ListTeamsProps = {
+  setMessage: (message: string) => void;
+  setSelectedForm: (form: string) => void;
+  setTeamToEdit: (team?: DevTeam) => void;
+};
 
 export function ListTeams({
   setMessage,
-  teams,
   setSelectedForm,
   setTeamToEdit,
-}: {
-  setMessage: (message: unknown) => void;
-  setSelectedForm: (form: string) => void;
-  setTeamToEdit: (team?: DevTeam) => void;
-  teams: DevTeam[];
-}) {
-  const { deleteTeam, collaborators, fetchTeams } = useTeamContext();
+}: ListTeamsProps) {
+  const { deleteTeam, fetchTeams, devTeams } = useTeamContext();
+  const { collaborators } = useCollaboratorContext();
 
   const [paginaAtual, setPaginaAtual] = useState(1);
   const [total, setTotal] = useState(0);
@@ -33,7 +35,7 @@ export function ListTeams({
       );
       const { success, message } = await deleteTeam(team.id);
       if (success) {
-        setMessage(message);
+        setMessage(message as string);
       }
 
       if (!confirmDelete) return;
@@ -43,7 +45,7 @@ export function ListTeams({
       );
       const { success, message } = await deleteTeam(team.id);
       if (success) {
-        setMessage(message);
+        setMessage(message as string);
       }
       if (!confirmDelete) return;
     }
@@ -51,8 +53,7 @@ export function ListTeams({
 
   const handleEdit = (team: DevTeam) => {
     setSelectedForm("form2");
-    // setMessage(`Editando o time: ${team.name}`);
-    setTeamToEdit(team); // <- Aqui!
+    setTeamToEdit(team);
   };
 
   useEffect(() => {
@@ -76,52 +77,52 @@ export function ListTeams({
       >
         <h5 className="card-title text-center mb-4">Times</h5>
         <ul className="list-group">
-          {teams.map(team => (
+          {devTeams.map(team => (
             <li
               key={team.id}
               className="list-group-item d-flex justify-content-between align-items-center"
             >
               <span>{team.name}</span>
-              <div style={{ display: "flex", gap: 8 }}>
-                <button onClick={() => handleEdit(team)}>
+              <span
+                className="text-white width-50 px-1 text-center"
+                style={{ backgroundColor: team.color }}
+              >
+                {team.color}
+              </span>
+              <span style={{ display: "flex", gap: 10, alignItems: "center" }}>
+                <a
+                  className="text-warning border-0"
+                  onClick={() => handleEdit(team)}
+                >
                   <FaEdit />
-                </button>
-                <button
-                  // className="btn btn-outline-danger"
+                </a>
+                <a
+                  className="border-0 text-danger"
                   onClick={() => handleDelete(team)}
                 >
                   <FaTrash />
-                </button>
-              </div>
+                </a>
+              </span>
             </li>
           ))}
         </ul>
-        <div
-          style={{
-            display: "flex",
-            gap: 8,
-            justifyContent: "center",
-            marginTop: 16,
-          }}
-        >
+        <div className="d-flex justify-content-center mt-2 gap-2">
           <button
-            className="border-0"
-            style={{ cursor: "pointer", color: "#6278f7" }}
+            className="border-0 cursor-pointer"
             onClick={() => setPaginaAtual(p => Math.max(p - 1, 1))}
             disabled={paginaAtual === 1}
           >
-            <IoChevronBack />
+            <IoChevronBack color="#6278f7" />
           </button>
           <span>
             Página {paginaAtual} de {totalPaginas}
           </span>
           <button
-            className="border-0"
-            style={{ cursor: "pointer", color: "#6278f7" }}
+            className="border-0 cursor-pointer"
             onClick={() => setPaginaAtual(p => Math.min(p + 1, totalPaginas))}
             disabled={paginaAtual === totalPaginas}
           >
-            <IoChevronForward />
+            <IoChevronForward color="#6278f7" />
           </button>
         </div>
       </div>

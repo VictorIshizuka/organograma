@@ -1,32 +1,37 @@
-import { JSX, Ref } from "react";
+import { JSX } from "react";
+import { UseFormRegister, FieldValues, Path } from "react-hook-form";
 
-interface TextInputProps {
-  name: string;
+interface TextInputProps<Model extends FieldValues> {
+  name: Path<Model>;
   label: string;
-  className?: string;
-  type?: string;
-  ref?: Ref<HTMLInputElement>;
   placeholder?: string;
+  type?: string;
+  error?: string;
+  register: UseFormRegister<Model>;
 }
 
-export function TextInput({
+export function TextInput<Model extends FieldValues>({
   name,
   label,
   placeholder,
-  type,
-  className,
-  ref,
-}: TextInputProps): JSX.Element {
+  type = "text",
+  error,
+  register,
+}: TextInputProps<Model>): JSX.Element {
   return (
     <div className="">
-      <label className={`form-label ${className || ""}`}>{label}</label>
+      <label htmlFor={name} className="form-label">
+        {label}
+      </label>
       <input
-        ref={ref}
-        type={`${type || "text"}`}
+        {...register(name)}
+        id={name}
         name={name}
-        className="form-control"
+        type={type}
         placeholder={placeholder}
+        className={`form-control ${error ? "is-invalid" : ""}`}
       />
+      {error && <div className="invalid-feedback">{error}</div>}
     </div>
   );
 }

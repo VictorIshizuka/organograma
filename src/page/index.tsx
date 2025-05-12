@@ -1,38 +1,35 @@
-import { JSX, useState } from "react";
+import { JSX, useEffect, useState } from "react";
 
-import { FaEye, FaEyeSlash } from "react-icons/fa";
-
+import { useCollaboratorContext } from "../hooks/CollaboratorContext";
 import { useTeamContext as useTeam } from "../hooks/TeamContext";
 
 import { Collaborator, DevTeam } from "../types";
 
-import { ToggleFormButton } from "../components/ToogleButton";
-import { CollaboratorCard } from "../components/Card";
+import { ToggleButton } from "../components/ToogleButton";
+import { Card } from "../components/Card";
+import { Toast } from "../components/Toast";
 
 import { FormCollaborator } from "./formCollaborator";
 import { ListTeams } from "./listTeams";
 import { SearchBar } from "./searchBar";
 import { FormTeam } from "./formTeam";
 import { Navbar } from "./navbar";
+import { CollaboratorCard } from "./itemCollaborator";
 
 export function Page(): JSX.Element {
-  const {
-    devTeams,
-    addCollaborator,
-    collaborators,
-    addTeam,
-    editCollaborator,
-    editTeam,
-  } = useTeam();
-  const [message, setMessage] = useState<unknown | null>(null);
+  const { devTeams } = useTeam();
+  const { collaborators } = useCollaboratorContext();
+
+  const [message, setMessage] = useState<string | null>(null);
   const [selectedForm, setSelectedForm] = useState("form1");
   const [showForm, setShowForm] = useState(false);
+
+  const [visibleTeams, setVisibleTeams] = useState<string[]>([]);
   const [teamToEdit, setTeamToEdit] = useState<DevTeam | undefined>();
   const [collaboratorToEdit, setCollaboratorToEdit] = useState<
     Collaborator | undefined
   >();
 
-  const [visibleTeams, setVisibleTeams] = useState<string[]>([]);
   const [searchTerm, setSearchTerm] = useState("");
   const [searchScope, setSearchScope] = useState("all");
 
@@ -68,74 +65,73 @@ export function Page(): JSX.Element {
   };
 
   const renderForm = () => {
+    const formProps = { setMessage };
+
     switch (selectedForm) {
       case "form1":
         return (
           <FormCollaborator
-            devTeams={devTeams}
-            setMessage={setMessage}
-            addCollaborator={addCollaborator}
-            editCollaborator={editCollaborator}
+            {...formProps}
             collaboratorToEdit={collaboratorToEdit}
           />
         );
       case "form2":
         return (
           <FormTeam
-            addTeam={addTeam}
-            setMessage={setMessage}
-            editTeam={editTeam}
-            team={teamToEdit} // <- aqui usamos o state
+            {...formProps}
+            teamToEdit={teamToEdit}
             setSelectedForm={setSelectedForm}
           />
         );
       case "form3":
         return (
           <ListTeams
-            setMessage={setMessage}
-            teams={devTeams}
+            {...formProps}
             setSelectedForm={setSelectedForm}
             setTeamToEdit={setTeamToEdit}
           />
         );
-
       default:
         return (
           <FormCollaborator
-            devTeams={devTeams}
-            setMessage={setMessage}
-            addCollaborator={addCollaborator}
-            editCollaborator={editCollaborator}
+            {...formProps}
             collaboratorToEdit={collaboratorToEdit}
           />
         );
     }
   };
 
+  useEffect(() => {
+    if (!message) return;
+    const timer = setTimeout(() => setMessage(null), 4000);
+    return () => clearTimeout(timer);
+  }, [message]);
+
   return (
     <div>
       <main className="container my-4">
-        <ToggleFormButton
-          showForm={showForm}
-          toggle={() => setShowForm(prev => !prev)}
-        />
+        <div className="d-flex justify-content-center mb-3">
+          <ToggleButton
+            className="btn-outline d-flex align-items-center gap-2"
+            show={showForm}
+            isForm={true}
+            toggle={() => setShowForm(prev => !prev)}
+          />
+        </div>
         {showForm && (
           <>
             <Navbar
               selectedForm={selectedForm}
               setSelectedForm={setSelectedForm}
             />
-            {(message as string) && (
-              <>
-                <div className="col-12 d-flex justify-content-center">
-                  <div className="alert alert-info">{message as string}</div>
-                </div>
-              </>
+            {message && (
+              <div className="col-12 d-flex justify-content-center">
+                <Toast message={message} />
+              </div>
             )}
             {renderForm()}
           </>
         )}
-
         <SearchBar
           searchTerm={searchTerm}
           setSearchTerm={setSearchTerm}
@@ -145,7 +141,7 @@ export function Page(): JSX.Element {
 
         <div className="row g-4">
           {collaborators.length == 0 ? (
-            <p className="text-center">Não há colaboradores cadastrados</p>
+            <p className="text-center">Não há colaboradores cadastrados...</p>
           ) : (
             devTeams
               ?.filter(team => {
@@ -167,27 +163,26 @@ export function Page(): JSX.Element {
 
                 return (
                   <div key={index}>
-                    <div
-                      className="card h-100 shadow"
+                    <Card
+                      className="shadow"
                       style={{ backgroundColor: team.color }}
+                      classNameHeader="d-flex justify-content-between align-items-center text-white w-100"
+                      headerCard={
+                        <>
+                          <h4 className="fw-bold mb-0">{team.name}</h4>
+                          <ToggleButton
+                            className="btn-sm btn-light"
+                            show={isVisible}
+                            color={team.color}
+                            toggle={() => toggleTeamVisibility(team.name)}
+                            isForm={false}
+                          />
+                        </>
+                      }
                     >
-                      <div className="card-header d-flex justify-content-between align-items-center text-white">
-                        <h4 className="fw-bold mb-0">{team.name}</h4>
-                        <button
-                          className="btn btn-sm btn-light"
-                          onClick={() => toggleTeamVisibility(team.name)}
-                        >
-                          {isVisible ? (
-                            <FaEyeSlash style={{ color: team.color }} />
-                          ) : (
-                            <FaEye style={{ color: team.color }} />
-                          )}
-                        </button>
-                      </div>
-
                       {isVisible && (
-                        <div className="card-body bg-light rounded-bottom d-flex flex-wrap justify-content-center">
-                          {filteredCollaborators.map((collaborator, idx) => (
+                        <div className="d-flex flex-wrap justify-content-center">
+                          {filteredCollaborators?.map((collaborator, idx) => (
                             <CollaboratorCard
                               key={idx}
                               collab={collaborator}
@@ -198,7 +193,7 @@ export function Page(): JSX.Element {
                           ))}
                         </div>
                       )}
-                    </div>
+                    </Card>
                   </div>
                 );
               })
